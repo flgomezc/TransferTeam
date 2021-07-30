@@ -1,7 +1,12 @@
 #!/bin/bash
+. config.ini
 
-BASE=/root/
-FEDINFO=/opt/TransferTeam/AAAOps/Federation/
+echo "create_allow-list.sh"
+echo "BASE: " $BASE
+echo "FEDINFO: " $FEDINFO
+
+#BASE=/root/
+#FEDINFO=/opt/TransferTeam/AAAOps/Federation/
 export XRD_NETWORKSTACK=IPv4
 
 declare -a redirectors=("cms-xrd-global01.cern.ch:1094" "cms-xrd-global02.cern.ch:1094" "cms-xrd-transit.cern.ch:1094")
