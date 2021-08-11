@@ -12,18 +12,36 @@ export XRD_NETWORKSTACK=IPv4
 declare -a redirectors=("cms-xrd-global01.cern.ch:1094" "cms-xrd-global02.cern.ch:1094" "cms-xrd-transit.cern.ch:1094")
 
 for j in "${redirectors[@]}";do
+
+	echo ">>> Ready to check  $j"
+
+	#Query and store redirectors
+	echo ">>> xrdcmap --list all $j"
+	xrdmapc --list all "$j" >  $BASE/tmp_raw_xrdmap_list_$j
+	echo ">>>"
+
 	if [ "$j" == "cms-xrd-global01.cern.ch:1094" ] || [ "$j" == "cms-xrd-global02.cern.ch:1094" ]; then
+		
+	
 		#query european reginal redirectors
-		xrdmapc --list all "$j" | grep -E 'xrootd.ba.infn.it|xrootd-redic.pi.infn.it|llrxrd-redir.in2p3.fr:1094' | awk '{print $3}' | cut -d ':' -f1 > $BASE/tmp_euRED_$j	
-		xrdmapc --list all "$j" | grep -E 'cmsxrootd2.fnal.gov|xrootd.unl.edu' | awk '{print $3}' | cut -d ':' -f1 > $BASE/tmp_usRED_$j
+		
+		cat $BASE/tmp_raw_xrdmap_list_$j | grep -E 'xrootd.ba.infn.it|xrootd-redic.pi.infn.it|llrxrd-redir.in2p3.fr:1094' | awk '{print $3}' | cut -d ':' -f1 > $BASE/tmp_euRED_$j	
+		#query american reginal redirectors
+		cat $BASE/tmp_raw_xrdmap_list_$j | grep -E 'cmsxrootd2.fnal.gov|xrootd.unl.edu' | awk '{print $3}' | cut -d ':' -f1 > $BASE/tmp_usRED_$j
+		
+		
 		for i in $(cat $BASE/tmp_euRED_$j);do
+			echo ">>> xrdcmap --list all $i:1094"
 			xrdmapc --list all $i:1094 > $BASE/tmp_$i
 			cat $BASE/tmp_$i | awk '{if($2=="Man") print $3; else print $2}' | tail -n +2 >> $BASE/tmp_total_eu_$j
+			echo ">>> "
 		done
 		
 		for k in $(cat $BASE/tmp_usRED_$j);do
+			echo ">>> xrdcmap --list all $k:1094"
 			xrdmapc --list all $k:1094 > $BASE/tmp_us_$k	
 			cat $BASE/tmp_us_$k | awk '{if($2=="Man") print $3; else print $2}' | tail -n +2 >> $BASE/tmp_total_us_$j
+			echo ">>> xrdcmap --list all $i:1094"
 		done
 	
 
@@ -42,7 +60,7 @@ for j in "${redirectors[@]}";do
 
 		done	
 	else
-		xrdmapc --list all "$j" | tail -n +2 | awk '{if($2=="Man") print $3; else print $2}' > $BASE/tmp_total
+		cat $BASE/tmp_raw_xrdmap_list_$j | tail -n +2 | awk '{if($2=="Man") print $3; else print $2}' > $BASE/tmp_total
 		cat $BASE/tmp_total | cut -d : -f1 | sort -u > $FEDINFO/in/trans.txt
 		
 		rm transit-hostIPv4.txt transit-hostIPv6.txt
@@ -56,7 +74,7 @@ for j in "${redirectors[@]}";do
 	fi	
 	  
 
-	rm $BASE/tmp_*
+	#rm $BASE/tmp_*
 
 done
 
