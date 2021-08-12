@@ -1,22 +1,44 @@
 import subprocess
 import sys
+from pprint import pprint
 
-BASE = "/root/fgomezco_test/tmp"
+TMPBASE = "/root/fgomezco_test/tmp"
 
 redirectors = [ "cms-xrd-global01.cern.ch:1094", 
                 "cms-xrd-global02.cern.ch:1094", 
                 "cms-xrd-transit.cern.ch:1094"]
 
-for redirector in redirectors[:]:
-    out_name = 'tmp_out_'+ str(redirector)
-    err_name = 'tmp_err_'+ str(redirector)
-    with open(out_name,'w+') as fout:
-        with open(err_name,'w+') as ferr:
-            out=subprocess.call(["ls",'-lha'],stdout=fout,stderr=ferr) # Python 3.5+, use subprocess.run() 
-            # reset file to read from it
-            fout.seek(0)
-            ferr.seek(0) 
-            # save output (if any) in variable
-            output=fout.read()
-            errors = ferr.read()
+def get_raw_global_redirectors():
+    redir_raw = []
 
+    for redirector in redirectors[:]:
+        out_name = TMPBASE + 'tmp_out_'+ str(redirector)
+        err_name = TMPBASE + 'tmp_err_'+ str(redirector)
+
+        with open(out_name,'w+') as fout:
+            with open(err_name,'w+') as ferr:
+                print(">>> xrdmapc --list all " + redirector)
+                out=subprocess.call(["xrdmapc", "--list", "all", redirector],
+                                    stdout=fout,stderr=ferr) 
+                # TODO Python 3.5+, use subprocess.run() 
+                
+                # reset file to read from it
+                fout.seek(0)
+                ferr.seek(0) 
+                # save output (if any) in variable
+                output=fout.read()
+                errors = ferr.read()
+    
+                redir_raw.append({"name":redirector, 
+                                  "output":output.splitlines(),
+                                  "error": errors.splitlines()})
+                redir_raw.append( )
+
+    return redir_raw
+
+
+if __name__ == '__main__':
+    global_raw = get_raw_global_redirectors()
+
+    pprint(global_raw)
+    
