@@ -2,7 +2,7 @@ import subprocess
 import sys
 from pprint import pprint
 
-TMPBASE = "/root/fgomezco_test/tmp"
+TMPBASE = "/root/fgomezco_test/tmp/"
 
 redirectors = [ "cms-xrd-global01.cern.ch:1094", 
                 "cms-xrd-global02.cern.ch:1094", 
@@ -32,9 +32,10 @@ def get_raw_global_redirectors():
                 redir_raw.append({"name":redirector, 
                                   "output":output.splitlines(),
                                   "error": errors.splitlines()})
-                redir_raw.append( )
-
     return redir_raw
+
+def get_raw_eu_redirectors():
+    return 0
 
 
 if __name__ == '__main__':
