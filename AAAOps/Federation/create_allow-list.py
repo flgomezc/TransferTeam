@@ -26,8 +26,7 @@ def get_raw_global_redirectors():
                             redirector], stdout=fout,stderr=ferr) 
                     # TODO Python 3.5+, use subprocess.run() 
                 
-                # If not in prod, just read existing files.
-                
+                # If not in prod, just read existing files.             
                 # Go to the head of the file, and save in variable
                 fout.seek(0)
                 ferr.seek(0) 
