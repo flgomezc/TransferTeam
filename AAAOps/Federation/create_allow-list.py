@@ -15,7 +15,7 @@ def get_raw_global_redirectors():
         out_name = TMPBASE + 'tmp_out_'+ str(redirector)
         err_name = TMPBASE + 'tmp_err_'+ str(redirector)
 
-        if 0 #ENV == "prod":
+        if ENV == "prod":
             with open(out_name,'w+') as fout:
                 with open(err_name,'w+') as ferr:
                     print(">>> xrdmapc --list all " + redirector)
@@ -108,11 +108,11 @@ def get_raw_eu_redirectors(name, list_names):
 
         names_only = list(set(names_only))
 
-        redir_raw.append({"name":redirector, 
-                          "raw_out":output.splitlines(),
-                          "error": errors.splitlines(),
-                          "redir_prep": redir_prep,
-                          "names_only": names_only})
+        redir_raw = {"name":redirector, 
+                     "raw_out":output.splitlines(),
+                     "error": errors.splitlines(),
+                     "redir_prep": redir_prep,
+                     "names_only": names_only}
     return redir_raw
 
 
