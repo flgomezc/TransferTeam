@@ -3,7 +3,10 @@ import sys
 from pprint import pprint
 
 TMPBASE = "/root/fgomezco_test/tmp/"
-ENV="prod"
+FEDINFO = "/root/fgomezco_test/fgomezco_dev/TransferTeam/AAAOps/Federation"
+#TMPBASE = "/root/tmp/"
+#FEDINFO=/opt/TransferTeam/AAAOps/Federation/
+ENV="dev"
 
 def xrdmapc_list_all_(redirector, global_parent, location):
 
@@ -33,12 +36,14 @@ def xrdmapc_list_all_(redirector, global_parent, location):
             
     redir_prep = []
     names_only = []
+    nameport = []
 
     for r in output.splitlines():
         aux = r.split()
         if len(aux) == 2:
             aux.insert(0, "no-level")
         redir_prep.append(aux)
+        nameport.append(aux[2])
 
         nameWport = aux[-1].split(":")
         if len(nameWport) == 2:
@@ -48,19 +53,21 @@ def xrdmapc_list_all_(redirector, global_parent, location):
             name = aux[-1].split("]:")[0]
             names_only.append(name + "]")
 
+            # TODO handle cases like:
+            # Unable to get osg-se.sprace.org.br:1094 subscribers; [ERROR] Operation expired
+
     names_only = list(set(names_only))
 
     redir_info = {"global_parent":global_parent,
                         "name":redirector,
                         "location":location,
+                        "nameport":nameport,
                         "raw_out":output.splitlines(),
                         "error": errors.splitlines(),
                         "redir_prep": redir_prep,
                         "names_only": names_only}
     
     return redir_info
-
-
 
 def get_raw_global_redirectors():
     redirectors = [ "cms-xrd-global01.cern.ch:1094", 
@@ -92,8 +99,6 @@ def get_raw_eu_redirectors(global_parent, list_names):
         redir_raw.append(redir_info)
     return redir_raw
 
-
-
 def get_raw_us_redirectors(global_parent, list_names):
     american = ["cmsxrootd2.fnal.gov",
                 "xrootd.unl.edu"]
@@ -109,6 +114,25 @@ def get_raw_us_redirectors(global_parent, list_names):
         redir_info = xrdmapc_list_all_(redirector, global_parent, location)
         redir_raw.append(redir_info)
     return redir_raw
+
+def unify_regional_server_list(region_raw):
+    region_in = []
+    region_out = []
+
+    for red in region_raw:
+        for fullservername in red['names_only']:
+            if fullservername[0] != "[":
+                region_in.append(fullservername)
+                domain = ".".fullservername.split(".")[-3:]
+                region_out.append(domain)
+
+    region_in = list(set(region_in))
+    region_out = list(set(region_out))
+    region_in.sort()
+    region_out.sort()
+
+    return region_in, region_out
+
 
 
 if __name__ == '__main__':
@@ -141,7 +165,6 @@ else:
         us_raw.extend(us_redir)
         print(">>>>  Get US redirector: DONE")
 
-    for red in us_raw:
-        print(red['name'])
-        pprint(red["redir_prep"])
-        print(" ")
+    total_eu_in, total_eu_out = unify_regional_server_list(eu_raw)
+    total_us_in, total_us_out = unify_regional_server_list(us_raw)
+    
