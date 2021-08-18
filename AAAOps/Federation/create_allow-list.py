@@ -219,13 +219,11 @@ else:
         print(">>>>  Get EU redirector: DONE")
 
         print(">>>>  Get US redirector")
-        eu_redir = get_raw_us_redirectors(red['name'], red['names_only'])
-        eu_raw.extend(eu_redir)
+        us_redir = get_raw_us_redirectors(red['name'], red['names_only'])
+        us_raw.extend(us_redir)
         print(">>>>  Get US redirector: DONE")
 
     for red in us_raw:
         print(red['name'])
         pprint(red["redir_prep"])
-        print()
-
-    
+        print(" ")
