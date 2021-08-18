@@ -3,7 +3,7 @@ import sys
 from pprint import pprint
 
 TMPBASE = "/root/fgomezco_test/tmp/"
-ENV="prod"
+ENV="dev"
 
 def get_raw_global_redirectors():
     redirectors = [ "cms-xrd-global01.cern.ch:1094", 
@@ -57,16 +57,16 @@ def get_raw_global_redirectors():
                           "names_only": names_only})
     return redir_raw
 
-def get_raw_eu_redirectors(name, list_names):
+def get_raw_eu_redirectors(global_name, list_names):
     
     european = ["xrootd.ba.infn.it",
                 "xrootd-redic.pi.infn.it", 
                 "llrxrd-redir.in2p3.fr"]
     
     redirectors=[]
-    for n in list_names:
-        if n in european:
-            redirectors.append(n + ":1094")
+    for name in list_names:
+        if name in european:
+            redirectors.append(name + ":1094")
 
     redir_raw = []
     for redirector in redirectors[:]:
@@ -103,20 +103,30 @@ def get_raw_eu_redirectors(name, list_names):
                 aux.insert(0, "no-level")
             redir_prep.append(aux)
 
-            name = aux[-1].split(":")[0] #Remove port
-            names_only.append(name)
+            nameWport = aux[-1].split(":")
+            if len(nameWport) == 2:
+                name = nameWport[0]
+                names_only.append(name) 
+            else: # Cases like: [2001:67c:1bec:f069::169]:1095
+                name = aux[-1].split("]:")[0]
+                names_only.append(name + "]")
 
         names_only = list(set(names_only))
 
-        redir_raw = {"name":redirector, 
-                     "raw_out":output.splitlines(),
-                     "error": errors.splitlines(),
-                     "redir_prep": redir_prep,
-                     "names_only": names_only}
+        redir_raw.append({"global_parent":global_name,
+                         "name":redirector, 
+                         "raw_out":output.splitlines(),
+                         "error": errors.splitlines(),
+                         "redir_prep": redir_prep,
+                         "names_only": names_only})
     return redir_raw
 
 
 if __name__ == '__main__':
+    print(" I AM MAIN")
+
+else:
+    print('I AM NOT MAIN')
 
     print(">>  Get global redirectors")
     global_raw = get_raw_global_redirectors()
@@ -130,7 +140,7 @@ if __name__ == '__main__':
 
         print(">>>>  Get EU redirector")
         eu_redir = get_raw_eu_redirectors(red['name'], red['names_only'])
-        eu_raw.append(eu_redir)
+        eu_raw.extend(eu_redir)
         print(">>>>  Get EU redirector: DONE")
 
     for red in eu_raw:
