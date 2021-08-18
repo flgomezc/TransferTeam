@@ -3,15 +3,80 @@ import sys
 from pprint import pprint
 
 TMPBASE = "/root/fgomezco_test/tmp/"
-ENV="dev"
+ENV="prod"
+
+def xrdmapc_list_all_(redirector, global_parent, location):
+
+    out_name = TMPBASE + "tmp_" + location + "_out_" + str(redirector)
+    err_name = TMPBASE + "tmp_" + location + "_err_" + str(redirector)
+
+    if ENV == "prod":
+        with open(out_name,'w+') as fout:
+            with open(err_name,'w+') as ferr:
+                print(">>> xrdmapc --list all " + redirector)
+                # run xrdmapc
+                out=subprocess.call(["xrdmapc", "--list", "all", 
+                        redirector], stdout=fout,stderr=ferr) 
+                # TODO Python 3.5+, use subprocess.run() 
+            
+                # If not in prod, just read existing files.             
+                # Go to the head of the file, and save in variable
+                fout.seek(0)
+                ferr.seek(0)              
+                output=fout.read()
+                errors = ferr.read()
+    else:
+        with open(out_name,'r') as fout:
+            with open(err_name,'r') as ferr:
+                output=fout.read()
+                errors = ferr.read()
+            
+    redir_prep = []
+    names_only = []
+
+    for r in output.splitlines():
+        aux = r.split()
+        if len(aux) == 2:
+            aux.insert(0, "no-level")
+        redir_prep.append(aux)
+
+        nameWport = aux[-1].split(":")
+        if len(nameWport) == 2:
+            name = nameWport[0]
+            names_only.append(name) 
+        else: # Cases like: [2001:67c:1bec:f069::169]:1095
+            name = aux[-1].split("]:")[0]
+            names_only.append(name + "]")
+
+    names_only = list(set(names_only))
+
+    redir_info = {"global_parent":global_parent,
+                        "name":redirector,
+                        "location":location,
+                        "raw_out":output.splitlines(),
+                        "error": errors.splitlines(),
+                        "redir_prep": redir_prep,
+                        "names_only": names_only}
+    
+    return redir_info
+
+
 
 def get_raw_global_redirectors():
     redirectors = [ "cms-xrd-global01.cern.ch:1094", 
                     "cms-xrd-global02.cern.ch:1094", 
                     "cms-xrd-transit.cern.ch:1094"]
 
+    global_parent = "None"
+    location = "CERN"
     redir_raw = []
     for redirector in redirectors[:]:
+        redir_info = xrdmapc_list_all_(redirector, global_parent, location)
+        redir_raw.append(redir_info)
+
+
+
+        """
         out_name = TMPBASE + 'tmp_out_'+ str(redirector)
         err_name = TMPBASE + 'tmp_err_'+ str(redirector)
 
@@ -56,6 +121,7 @@ def get_raw_global_redirectors():
                           "error": errors.splitlines(),
                           "redir_prep": redir_prep,
                           "names_only": names_only})
+                          """
     return redir_raw
 
 def get_raw_eu_redirectors(global_name, list_names):
