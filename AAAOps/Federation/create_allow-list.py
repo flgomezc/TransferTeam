@@ -16,23 +16,27 @@ def get_raw_global_redirectors():
         out_name = TMPBASE + 'tmp_out_'+ str(redirector)
         err_name = TMPBASE + 'tmp_err_'+ str(redirector)
 
-        with open(out_name,'w+') as fout:
-            with open(err_name,'w+') as ferr:
-                print(">>> xrdmapc --list all " + redirector)
-
-                if ENV == "prod":
+        if ENV == "prod":
+            with open(out_name,'w+') as fout:
+                with open(err_name,'w+') as ferr:
+                    print(">>> xrdmapc --list all " + redirector)
                     # run xrdmapc
                     out=subprocess.call(["xrdmapc", "--list", "all", 
                             redirector], stdout=fout,stderr=ferr) 
                     # TODO Python 3.5+, use subprocess.run() 
                 
-                # If not in prod, just read existing files.             
-                # Go to the head of the file, and save in variable
-                fout.seek(0)
-                ferr.seek(0) 
-                output=fout.read()
-                errors = ferr.read()
-        
+                    # If not in prod, just read existing files.             
+                    # Go to the head of the file, and save in variable
+                    fout.seek(0)
+                    ferr.seek(0)              
+                    output=fout.read()
+                    errors = ferr.read()
+        else:
+            with open(out_name,'r') as fout:
+                with open(err_name,'r') as ferr:
+                    output=fout.read()
+                    errors = ferr.read()
+            
         redir_prep = []
         for r in output.splitlines():
             aux = r.split()
