@@ -38,15 +38,24 @@ def get_raw_global_redirectors():
                     errors = ferr.read()
             
         redir_prep = []
+        names_only = []
+
         for r in output.splitlines():
             aux = r.split()
+            if len(aux) == 2:
+                aux.insert(0, "no-level")
             redir_prep.append(aux)
 
+            name = aux[-1].split(":")[0] #Remove port
+            names_only.append(name)
+
+        names_only = list(set(names_only))
 
         redir_raw.append({"name":redirector, 
                           "raw_out":output.splitlines(),
                           "error": errors.splitlines(),
-                          "redir_prep": redir_prep})
+                          "redir_prep": redir_prep,
+                          "names_only": names_only})
     return redir_raw
 
 def get_raw_eu_redirectors():
@@ -59,5 +68,7 @@ if __name__ == '__main__':
     global_raw = get_raw_global_redirectors()
 
     for red in global_raw:
-        pprint(red["redir_prep"])
+        #pprint(red["redir_prep"])
+        print(red['name'])
+        print(red['names_only'])
     
