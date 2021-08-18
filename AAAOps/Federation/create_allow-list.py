@@ -3,7 +3,7 @@ import sys
 from pprint import pprint
 
 TMPBASE = "/root/fgomezco_test/tmp/"
-ENV="dev"
+ENV="prod"
 
 def get_raw_global_redirectors():
     redirectors = [ "cms-xrd-global01.cern.ch:1094", 
@@ -15,7 +15,7 @@ def get_raw_global_redirectors():
         out_name = TMPBASE + 'tmp_out_'+ str(redirector)
         err_name = TMPBASE + 'tmp_err_'+ str(redirector)
 
-        if ENV == "prod":
+        if 0 #ENV == "prod":
             with open(out_name,'w+') as fout:
                 with open(err_name,'w+') as ferr:
                     print(">>> xrdmapc --list all " + redirector)
@@ -120,6 +120,7 @@ if __name__ == '__main__':
 
     print(">>  Get global redirectors")
     global_raw = get_raw_global_redirectors()
+    print(">>  Get global redirectors: DONE")
 
     eu_raw = []
     for red in global_raw:
@@ -127,7 +128,10 @@ if __name__ == '__main__':
         print(red['name'])
         print(red['names_only'])
 
-        eu_raw.append(red['name'], red['names_only'])
+        print(">>>>  Get EU redirector")
+        eu_redir = get_raw_eu_redirectors(red['name'], red['names_only'])
+        eu_raw.append(eu_redir)
+        print(">>>>  Get EU redirector: DONE")
 
     for red in eu_raw:
         print(red['name'])
